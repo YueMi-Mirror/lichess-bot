@@ -1,0 +1,11 @@
+.git*
+.github/
+docs/
+wiki/
+test_bot/
+__pycache__/
+*.pyc
+.env
+.dockerignore
+bot.log
+bot_output.txt
