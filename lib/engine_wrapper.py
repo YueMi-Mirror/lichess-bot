@@ -195,6 +195,32 @@ class EngineWrapper:
                 game_ender(game.id)
                 return
 
+        # Safety net: ensure the move is legal before sending to Lichess
+        if best_move.move is not None:
+            move_uci = best_move.move.uci()
+            if len(move_uci) < 4 or len(move_uci) > 5:
+                logger.error(f"Engine returned malformed UCI move '{move_uci}', selecting first legal move.")
+                first_legal = next(iter(board.legal_moves), None)
+                if first_legal is not None:
+                    best_move = chess.engine.PlayResult(first_legal, best_move.ponder,
+                                                        best_move.info, best_move.draw_offered,
+                                                        best_move.resigned)
+                else:
+                    game_ender = li.abort if game.is_abortable() else li.resign
+                    game_ender(game.id)
+                    return
+            elif best_move.move not in board.legal_moves:
+                logger.error(f"Engine returned illegal move '{move_uci}', selecting first legal move.")
+                first_legal = next(iter(board.legal_moves), None)
+                if first_legal is not None:
+                    best_move = chess.engine.PlayResult(first_legal, best_move.ponder,
+                                                        best_move.info, best_move.draw_offered,
+                                                        best_move.resigned)
+                else:
+                    game_ender = li.abort if game.is_abortable() else li.resign
+                    game_ender(game.id)
+                    return
+
         # Heed min_time
         elapsed = setup_timer.time_since_reset()
         if elapsed < min_time:
