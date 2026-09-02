@@ -13,4 +13,5 @@ venv/
 
 # Config Files
 /config.yml
+/config/config.yml
 
